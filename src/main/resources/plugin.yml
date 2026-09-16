@@ -1,0 +1,13 @@
+name: Plaque
+version: ${project.version}
+main: org.luckyraven.plaque.Plaque
+# Support floor is MC 1.16, matching Keystone's API floor.
+api-version: '1.16'
+depend:
+   - Keystone
+softdepend:
+   - PlaceholderAPI
+   - ViaVersion
+authors:
+   - LuckyRaven10
+description: ${project.description}

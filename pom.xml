@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.luckyraven.plaque</groupId>
+    <artifactId>plaque</artifactId>
+    <version>${revision}</version>
+    <packaging>jar</packaging>
+
+    <name>Plaque</name>
+    <description>Standalone Keystone-powered scoreboard plugin for Spigot, extracted from Gangland Warfare (decoupling wave WS1, 2026-09-16).</description>
+
+    <!-- Maven Central requires url, licenses, developers and scm in every published pom (only relevant once the
+         release profile below is activated; matches every other repo in this studio). -->
+    <url>https://github.com/LuckyLuckiest/Plaque</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>LuckyLuckiest</id>
+            <name>LuckyRaven10</name>
+            <email>luckyluckiest2002@gmail.com</email>
+            <url>https://github.com/LuckyLuckiest</url>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:https://github.com/LuckyLuckiest/Plaque.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/LuckyLuckiest/Plaque.git</developerConnection>
+        <url>https://github.com/LuckyLuckiest/Plaque</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <!-- Single source of truth for the Plaque version (CI-friendly versioning), same pattern as
+             Bartizan/Gangland/Keystone. Bump ONLY this property. -->
+        <revision>0.1.0</revision>
+
+        <!-- Java 17, matching Keystone's floor. -->
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- API floor: Spigot 1.16.5, matching Keystone's own floor (WS1 plan §2/§13 — nothing ported from
+             scoreboard-api needs a newer Bukkit symbol; do not inherit Bartizan's 1.21.11 pin by copy-paste). -->
+        <bukkit.version>1.16.5-R0.1-SNAPSHOT</bukkit.version>
+
+        <!-- Keystone: provided at runtime from Keystone-<version>.jar in /plugins, never shaded. Pinned per the
+             WS1 brief, independent of Keystone's own current branch tip (1.10.0). -->
+        <keystone.version>1.9.2</keystone.version>
+
+        <!-- fr.mrmicky:fastboard — same version Gangland's root pom shaded (root pom.xml:75 there). -->
+        <fastboard.version>2.1.5</fastboard.version>
+        <viaversion.version>5.8.1</viaversion.version>
+        <log4j.version>2.19.0</log4j.version>
+
+        <junit.version>6.0.3</junit.version>
+        <mockito.version>5.23.0</mockito.version>
+        <lombok.version>1.18.44</lombok.version>
+        <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+
+        <!-- Central publishing (release profile only; not activated this wave — P1: install to ~/.m2, publish
+             once namespace/GPG setup lands, same as every other repo in this studio). -->
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
+        <central.skipPublishing>false</central.skipPublishing>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>maven_central</id>
+            <url>https://repo.maven.apache.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>viaversion-repo</id>
+            <url>https://repo.viaversion.com</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- Keystone: provided everywhere, never shaded. keystone-bean/keystone-hooks are not yet referenced by
+             G0/G1 code (bootstrap + placeholders land in G2) but are declared now per the WS1 plan's §2
+             dependency list, to avoid pom churn across gates. -->
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-common</artifactId>
+            <version>${keystone.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-bean</artifactId>
+            <version>${keystone.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-persistence</artifactId>
+            <version>${keystone.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-hooks</artifactId>
+            <version>${keystone.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Shaded into Plaque-<version>.jar and relocated below; the only real (non-Keystone) runtime
+             dependency this plugin ships. -->
+        <dependency>
+            <groupId>fr.mrmicky</groupId>
+            <artifactId>fastboard</artifactId>
+            <version>${fastboard.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.viaversion</groupId>
+            <artifactId>viaversion-api</artifactId>
+            <version>${viaversion.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Required to compile Lombok's @CustomLog (lombok.config wires it to Keystone's Logger). -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>${bukkit.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- BukkitStatics / PluginMocks (documentation/TESTING.md house pattern in the Gangland repo). -->
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-testkit</artifactId>
+            <version>${keystone.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>Plaque-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Resolves ${revision} in the installed/deployed pom, so a consumer resolving
+                 org.luckyraven.plaque:plaque from a repository sees a concrete version. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!-- Keystone (and every other provided-scope dependency) stays out of the shaded jar
+                                 by virtue of "provided" scope; fastboard is the only dependency actually bundled.
+                                 Relocated so Spigot's shared classloader never collides with another plugin that
+                                 also shades FastBoard, same pattern Gangland used (gangland-build/pom.xml). -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>fr.mrmicky.fastboard</pattern>
+                                    <shadedPattern>org.luckyraven.plaque.dependency.fastboard</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/**/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Everything the Sonatype Central Portal requires on top of the normal build. Kept out of the default
+         build so day-to-day `mvn install` stays fast and never asks for a GPG key. Not activated this wave
+         (P1) — namespace/GPG setup is pending, same as every other repo in this studio. -->
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <doclint>none</doclint>
+                            <quiet>true</quiet>
+                            <notimestamp>true</notimestamp>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <deploymentName>Plaque ${revision}</deploymentName>
+                            <autoPublish>false</autoPublish>
+                            <checksums>all</checksums>
+                            <skipPublishing>${central.skipPublishing}</skipPublishing>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
