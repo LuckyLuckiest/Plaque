@@ -11,3 +11,14 @@ softdepend:
 authors:
    - LuckyRaven10
 description: ${project.description}
+
+commands:
+   plaque:
+      description: Plaque scoreboard plugin main command.
+      permission: plaque.command.main
+      aliases:
+         - plq
+
+permissions:
+   plaque.command.main:
+      default: op

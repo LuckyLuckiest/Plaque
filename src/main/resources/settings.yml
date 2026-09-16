@@ -1,0 +1,27 @@
+#   +------------------------------------------------------+   #
+#  /     __________      _______________       ____         \  #
+# |     / ________/      \_____   _____/      / __ \         | #
+# |    | /                     | |           / /  \ \        | #
+# |    | |  _______            | |          / /____\ \       | #
+# |    | |  \_____ \           | |         / ________ \      | #
+# |    | \_______/ ||          | |        / /        \ \     | #
+# |     \__________/           |_|       /_/          \_\    | #
+# |                                                          | #
+# |                    File: settings.yml                    | #
+# |                  Author: [LuckyRaven10]                  | #
+#  \                                                        /  #
+#   +------------------------------------------------------+   #
+
+# +---------------------+ #
+# |    Plaque Config    | #
+# +---------------------+ #
+
+# Whether the board is shown to players at all.
+Enable: true
+
+# This plugin ships one driver: Driver_V3 (a minimal-diff, low-overhead renderer that only sends a FastBoard
+# update for a line whose computed text actually changed since its last tick). Gangland's older Driver_V1/
+# Driver_V2 clustering algorithms were retired when this plugin split out of Gangland Warfare (decoupling wave
+# WS1, decision D1) — an unrecognised value here falls back to Driver_V3 with a startup warning rather than
+# silently reproducing a deleted driver's behaviour.
+Driver: "Driver_V3"

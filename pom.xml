@@ -120,6 +120,16 @@
             <version>${keystone.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- G2: /plaque reload is a keystone-command Command, not a plain CommandExecutor (WS1-D2 was decided
+             by the user in the decisions register — "stick with keystone implementation since they already have
+             the whole library" — overriding the plan document's own CommandExecutor recommendation; orchestrator
+             ruling W5). -->
+        <dependency>
+            <groupId>org.luckyraven</groupId>
+            <artifactId>keystone-command</artifactId>
+            <version>${keystone.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Shaded into Plaque-<version>.jar and relocated below; the only real (non-Keystone) runtime
              dependency this plugin ships. -->
