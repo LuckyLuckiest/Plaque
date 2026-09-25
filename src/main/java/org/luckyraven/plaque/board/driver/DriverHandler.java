@@ -63,32 +63,17 @@ public abstract class DriverHandler {
 		globalTickCount++;
 	}
 
-	private boolean shouldUpdateLine(Line line) {
-		// Static lines never update after initial
-		if (line.isStatic() || line.getInterval() == 0L) {
-			return false;
-		}
-
-		// Update when globalTickCount is divisible by the line's interval
-		return globalTickCount % line.getInterval() == 0L;
-	}
-
 	private void updateBoard() {
-		// update title
-		if (shouldUpdateLine(title)) {
-			lineUpdateCounts.merge(title, 1L, Long::sum);
-			fastBoard.updateTitle(updateLine(title));
-		}
+		// gi=78: this is the one-time initial resolve (called only from the constructor, see its comment), so every
+		// line must be resolved here regardless of interval/static-ness — the old shouldUpdateLine() gate that used
+		// to guard this call also excluded static/Interval:0 lines from ever running, leaving titles blank and
+		// those rows showing their raw, unresolved placeholder text forever.
+		lineUpdateCounts.merge(title, 1L, Long::sum);
+		fastBoard.updateTitle(updateLine(title));
 
-		// update lines
 		List<String> updateLines = lines.stream().filter(line -> line != title).map(line -> {
-			if (shouldUpdateLine(line)) {
-				lineUpdateCounts.merge(line, 1L, Long::sum);
-				return updateLine(line);
-			} else {
-				// return cached content
-				return line.getCurrentContent();
-			}
+			lineUpdateCounts.merge(line, 1L, Long::sum);
+			return updateLine(line);
 		}).toList();
 
 		fastBoard.updateLines(updateLines);
