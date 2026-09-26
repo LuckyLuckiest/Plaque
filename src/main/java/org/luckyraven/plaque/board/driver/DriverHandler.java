@@ -63,35 +63,37 @@ public abstract class DriverHandler {
 		globalTickCount++;
 	}
 
-	private boolean shouldUpdateLine(Line line) {
-		// Static lines never update after initial
-		if (line.isStatic() || line.getInterval() == 0L) {
-			return false;
-		}
-
-		// Update when globalTickCount is divisible by the line's interval
-		return globalTickCount % line.getInterval() == 0L;
-	}
-
 	private void updateBoard() {
-		// update title
-		if (shouldUpdateLine(title)) {
-			lineUpdateCounts.merge(title, 1L, Long::sum);
-			fastBoard.updateTitle(updateLine(title));
-		}
+		// gi=78: this is the one-time initial resolve (called only from the constructor, see its comment), so every
+		// line must be resolved here regardless of interval/static-ness — the old shouldUpdateLine() gate that used
+		// to guard this call also excluded static/Interval:0 lines from ever running, leaving titles blank and
+		// those rows showing their raw, unresolved placeholder text forever. resolveAll() is the unconditional,
+		// side-effect-free step that used to be gated; it is extracted (and static) so a future regression is
+		// pinned by DriverHandlerTest without needing a live FastBoard/NMS.
+		lines.forEach(line -> lineUpdateCounts.merge(line, 1L, Long::sum));
 
-		// update lines
-		List<String> updateLines = lines.stream().filter(line -> line != title).map(line -> {
-			if (shouldUpdateLine(line)) {
-				lineUpdateCounts.merge(line, 1L, Long::sum);
-				return updateLine(line);
-			} else {
-				// return cached content
-				return line.getCurrentContent();
-			}
-		}).toList();
+		Map<Line, String> resolved = resolveAll(placeholder, fastBoard.getPlayer(), lines);
+
+		fastBoard.updateTitle(resolved.get(title));
+
+		List<String> updateLines = lines.stream().filter(line -> line != title).map(resolved::get).toList();
 
 		fastBoard.updateLines(updateLines);
+	}
+
+	/**
+	 * gi=78: resolves every line's content (title included), unconditionally — regardless of interval/static-ness.
+	 * Static and package-private so it's directly unit-testable without constructing a live FastBoard: FastBoard's
+	 * static initializer reflects into {@code CraftChatMessage} and throws off a server-less test JVM.
+	 */
+	static Map<Line, String> resolveAll(PlaceholderProvider placeholder, Player player, List<Line> lines) {
+		Map<Line, String> resolved = new HashMap<>();
+
+		for (Line line : lines) {
+			resolved.put(line, line.update(placeholder, player));
+		}
+
+		return resolved;
 	}
 
 	private static class FastBoardImpl extends FastBoard {

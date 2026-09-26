@@ -86,7 +86,7 @@ public final class Plaque extends JavaPlugin {
 		}
 
 		if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-			log.info("Found PlaceholderAPI, linking...");
+			log.info("Found PlaceholderAPI; board placeholders resolve through it");
 		} else {
 			log.warn("PlaceholderAPI not found: dynamic %gangland_*%-style placeholders will render literally " +
 			         "unless another plugin publishes a Keystone PlaceholderProvider on the ServicesManager. " +
